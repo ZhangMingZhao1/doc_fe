@@ -6,9 +6,9 @@ import windi from 'vite-plugin-windicss';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react({ fastRefresh: false }), windi()],
-  server: { open: true },
-  resolve: {
-    dedupe: ['slate', 'slate-react', 'yjs', 'y-protocols'],
-  },
+    plugins: [react({ fastRefresh: false }), windi()],
+    server: { open: true, port: 3001 },
+    resolve: {
+        dedupe: ['slate', 'slate-react', 'yjs', 'y-protocols']
+    }
 });
