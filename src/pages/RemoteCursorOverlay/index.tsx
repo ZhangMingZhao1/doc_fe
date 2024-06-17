@@ -1,5 +1,12 @@
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import { withCursors, withYHistory, withYjs, YjsEditor } from '@slate-yjs/core';
+import {
+    withCursors,
+    withYHistory,
+    withYjs,
+    YjsEditor,
+    yTextToSlateElement,
+    slateNodesToInsertDelta
+} from '@slate-yjs/core';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Descendant } from 'slate';
 import {
@@ -35,7 +42,7 @@ export function RemoteCursorsOverlayPage() {
         const time = new Date().getTime();
         const snapshot = Y.snapshot(ydoc);
         const enCodesnapshot = Y.encodeSnapshot(snapshot);
-        await axios.post('http://localhost:3000/save', {
+        await axios.post('http://localhost:3000/save/snapshot', {
             snapshot: enCodesnapshot,
             time
         });
@@ -43,6 +50,26 @@ export function RemoteCursorsOverlayPage() {
             ...versionList,
             { time, snapshot: enCodesnapshot, clientID: ydoc.clientID }
         ]);
+    };
+    const revertThisVersion = async (version) => {
+        const { snapshot } = version;
+        const arr = Object.values(snapshot);
+        const bufferArr = Uint8Array.from(arr);
+        const newDoc = Y.createDocFromSnapshot(
+            ydoc,
+            Y.decodeSnapshot(bufferArr)
+        );
+        // const originShare = ydoc.get('content', Y.XmlText) as Y.XmlText;
+        // const sharedType = newDoc.get('content', Y.XmlText) as Y.XmlText;
+        // const slateContent: any = yTextToSlateElement(sharedType);
+        // setValue(slateContent.children);
+        // Transforms.setNodes(editor, slateContent, { at: [0] });
+        // console.log('editor', editor);
+        // editor.children = slateContent.children;
+        // console.log('slateContentxx', slateContent);
+        // setValue(slateContent.children);
+        // const insertDelta = slateNodesToInsertDelta(slateContent.children);
+        // originShare.applyDelta(insertDelta);
     };
     const isMarkActive = (editor, format) => {
         const marks = Editor.marks(editor);
@@ -163,20 +190,20 @@ export function RemoteCursorsOverlayPage() {
             'content',
             Y.XmlText
         ) as Y.XmlText;
-
+        console.log('xxxx', 1111);
         return withMarkdown(
-            withNormalize(
-                withReact(
-                    withYHistory(
-                        withCursors(
-                            withYjs(createEditor(), sharedType, {
-                                autoConnect: false
-                            }),
-                            provider.awareness,
-                            {
-                                data: randomCursorData()
-                            }
-                        )
+            // withNormalize(
+            withReact(
+                withYHistory(
+                    withCursors(
+                        withYjs(createEditor(), sharedType, {
+                            autoConnect: false
+                        }),
+                        provider.awareness,
+                        {
+                            data: randomCursorData()
+                        }
+                        // )
                     )
                 )
             )
@@ -213,7 +240,11 @@ export function RemoteCursorsOverlayPage() {
                 <div className="version-list">
                     {versionList.map((version, index) => {
                         return (
-                            <div key={index} className="version-item">
+                            <div
+                                key={index}
+                                className="version-item"
+                                onClick={() => revertThisVersion(version)}
+                            >
                                 {new Date(version.time).toLocaleString()}
                             </div>
                         );

@@ -1,3 +1,5 @@
 import * as Y from 'yjs';
 
-export const ydoc = new Y.Doc();
+const ydoc = new Y.Doc();
+ydoc.gc = false;
+export { ydoc };
